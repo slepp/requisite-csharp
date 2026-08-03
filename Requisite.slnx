@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/examples/">
+    <Project Path="examples/PaymentFlow/PaymentFlow.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Requisite.Analyzers/Requisite.Analyzers.csproj" />
+    <Project Path="src/Requisite/Requisite.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Requisite.Tests/Requisite.Tests.csproj" />
+  </Folder>
+</Solution>

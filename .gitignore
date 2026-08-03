@@ -1,0 +1,10 @@
+.cli-home/
+.dotnet/
+.packages/
+.scratch/
+[Bb]in/
+[Oo]bj/
+[Tt]est[Rr]esults/
+artifacts/
+*.nupkg
+*.snupkg

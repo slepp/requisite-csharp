@@ -1,0 +1,193 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Verify tag and project version
+        shell: bash
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Release tags must use vMAJOR.MINOR.PATCH."
+            exit 1
+          fi
+
+          VERSION="${GITHUB_REF_NAME#v}"
+          PROJECT_VERSION="$(python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          root = ET.parse("src/Requisite/Requisite.csproj").getroot()
+          value = root.findtext(".//VersionPrefix")
+          if not value:
+              raise SystemExit("VersionPrefix is missing")
+          print(value)
+          PY
+          )"
+
+          if [[ "$VERSION" != "$PROJECT_VERSION" ]]; then
+            echo "::error::Tag version $VERSION does not match VersionPrefix $PROJECT_VERSION."
+            exit 1
+          fi
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Restore locked dependencies
+        run: dotnet restore Requisite.slnx --locked-mode
+
+      - name: Verify formatting
+        run: dotnet format Requisite.slnx --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build Requisite.slnx --configuration Release --no-restore
+
+      - name: Test .NET 8
+        run: dotnet test tests/Requisite.Tests/Requisite.Tests.csproj --configuration Release --framework net8.0 --no-build
+
+      - name: Test .NET 10
+        run: dotnet test tests/Requisite.Tests/Requisite.Tests.csproj --configuration Release --framework net10.0 --no-build
+
+      - name: Run examples
+        run: |
+          dotnet run --project examples/PaymentFlow/PaymentFlow.csproj --configuration Release --framework net8.0 --no-build
+          dotnet run --project examples/PaymentFlow/PaymentFlow.csproj --configuration Release --framework net10.0 --no-build
+
+      - name: Find package validation baseline
+        id: baseline
+        shell: bash
+        run: |
+          BASELINE="$(python3 - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+
+          def version_key(version):
+              return tuple(int(part) for part in version.split("."))
+
+          try:
+              with urllib.request.urlopen(
+                  "https://api.nuget.org/v3-flatcontainer/requisite/index.json",
+                  timeout=30,
+              ) as response:
+                  versions = json.load(response)["versions"]
+          except urllib.error.HTTPError as error:
+              if error.code == 404:
+                  versions = []
+              else:
+                  raise
+
+          current = os.environ["VERSION"]
+          current_key = version_key(current)
+          newer = [
+              version
+              for version in versions
+              if "-" not in version and version_key(version) > current_key
+          ]
+          if newer:
+              raise SystemExit(
+                  f"Refusing to release {current}; newer stable versions exist: {newer}"
+              )
+
+          stable = [
+              version
+              for version in versions
+              if "-" not in version and version_key(version) < current_key
+          ]
+          print(max(stable, key=version_key) if stable else "")
+          PY
+          )"
+          echo "version=$BASELINE" >> "$GITHUB_OUTPUT"
+
+      - name: Pack
+        env:
+          BASELINE_VERSION: ${{ steps.baseline.outputs.version }}
+        shell: bash
+        run: |
+          ARGS=()
+          if [[ -n "$BASELINE_VERSION" ]]; then
+            ARGS+=("-p:PackageValidationBaselineVersion=$BASELINE_VERSION")
+            dotnet restore src/Requisite/Requisite.csproj \
+              -p:PackageValidationBaselineVersion="$BASELINE_VERSION" \
+              -p:RestoreLockedMode=false
+          fi
+
+          dotnet pack src/Requisite/Requisite.csproj \
+            --configuration Release \
+            --no-build \
+            --no-restore \
+            --output artifacts/package \
+            "${ARGS[@]}"
+
+      - name: Inspect package
+        shell: bash
+        run: |
+          test -f "artifacts/package/Requisite.$VERSION.nupkg"
+          test -f "artifacts/package/Requisite.$VERSION.snupkg"
+          python3 eng/inspect-package.py \
+            "artifacts/package/Requisite.$VERSION.nupkg" \
+            "artifacts/package/Requisite.$VERSION.snupkg" \
+            --version "$VERSION"
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: requisite-${{ env.VERSION }}
+          path: |
+            artifacts/package/*.nupkg
+            artifacts/package/*.snupkg
+          if-no-files-found: error
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" artifacts/package/*.nupkg artifacts/package/*.snupkg --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              artifacts/package/*.nupkg \
+              artifacts/package/*.snupkg \
+              --verify-tag \
+              --generate-notes \
+              --title "$GITHUB_REF_NAME"
+          fi
+
+      - name: Publish to NuGet when configured
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        shell: bash
+        run: |
+          if [[ -z "$NUGET_API_KEY" ]]; then
+            echo "::notice::NUGET_API_KEY is not configured; NuGet publication was skipped."
+            exit 0
+          fi
+
+          dotnet nuget push "artifacts/package/Requisite.$VERSION.nupkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
