@@ -20,14 +20,14 @@
     <IncludeSymbols>true</IncludeSymbols>
     <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
     <InformationalVersion>$(VersionPrefix)</InformationalVersion>
-    <PackageId>Requisite</PackageId>
+    <PackageId>Requisite.CSharp</PackageId>
     <PackageLicenseExpression>MIT OR Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/slepp/requisite-csharp</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/slepp/requisite-csharp/blob/main/CHANGELOG.md</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>typestate;validation;type-safety;taint;confidence;freshness;ttl;capability</PackageTags>
-    <PackageValidationBaselineName>Requisite</PackageValidationBaselineName>
+    <PackageValidationBaselineName>Requisite.CSharp</PackageValidationBaselineName>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/slepp/requisite-csharp</RepositoryUrl>
@@ -55,6 +55,7 @@
     <None Include="../../LICENSE-APACHE" Pack="true" PackagePath="/" />
     <None Include="../../LICENSE-MIT" Pack="true" PackagePath="/" />
     <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../CHANGELOG.md" Pack="true" PackagePath="/" />
     <None
       Include="../Requisite.Analyzers/bin/$(Configuration)/netstandard2.0/Requisite.Analyzers.dll"
       Pack="true"

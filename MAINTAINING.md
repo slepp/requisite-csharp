@@ -43,7 +43,7 @@ Regenerate and commit package lock files after intentional dependency updates.
 
 ## Release
 
-1. Update versions and release notes in `src/Requisite/Requisite.csproj`.
+1. Update `VersionPrefix` and `CHANGELOG.md`.
 2. Run all checks above and inspect the package.
 3. Push a tag exactly matching `v<VersionPrefix>`, for example `v0.1.0`.
 

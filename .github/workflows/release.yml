@@ -90,7 +90,7 @@ jobs:
 
           try:
               with urllib.request.urlopen(
-                  "https://api.nuget.org/v3-flatcontainer/requisite/index.json",
+                  "https://api.nuget.org/v3-flatcontainer/requisite.csharp/index.json",
                   timeout=30,
               ) as response:
                   versions = json.load(response)["versions"]
@@ -145,11 +145,11 @@ jobs:
       - name: Inspect package
         shell: bash
         run: |
-          test -f "artifacts/package/Requisite.$VERSION.nupkg"
-          test -f "artifacts/package/Requisite.$VERSION.snupkg"
+          test -f "artifacts/package/Requisite.CSharp.$VERSION.nupkg"
+          test -f "artifacts/package/Requisite.CSharp.$VERSION.snupkg"
           python3 eng/inspect-package.py \
-            "artifacts/package/Requisite.$VERSION.nupkg" \
-            "artifacts/package/Requisite.$VERSION.snupkg" \
+            "artifacts/package/Requisite.CSharp.$VERSION.nupkg" \
+            "artifacts/package/Requisite.CSharp.$VERSION.snupkg" \
             --version "$VERSION"
 
       - name: Upload workflow artifacts
@@ -187,7 +187,7 @@ jobs:
             exit 0
           fi
 
-          dotnet nuget push "artifacts/package/Requisite.$VERSION.nupkg" \
+          dotnet nuget push "artifacts/package/Requisite.CSharp.$VERSION.nupkg" \
             --api-key "$NUGET_API_KEY" \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate

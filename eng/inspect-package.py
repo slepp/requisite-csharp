@@ -32,7 +32,7 @@ def inspect_binary_package(path: Path, expected_version: str | None) -> None:
         if missing:
             raise SystemExit(f"{path}: missing entries: {sorted(missing)}")
 
-        root = ET.fromstring(archive.read("Requisite.nuspec"))
+        root = ET.fromstring(archive.read("Requisite.CSharp.nuspec"))
         namespace = {"n": "http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd"}
         metadata = root.find("n:metadata", namespace)
         if metadata is None:

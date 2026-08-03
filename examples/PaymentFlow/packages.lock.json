@@ -2,12 +2,12 @@
   "version": 1,
   "dependencies": {
     "net10.0": {
-      "requisite": {
+      "Requisite.CSharp": {
         "type": "Project"
       }
     },
     "net8.0": {
-      "requisite": {
+      "Requisite.CSharp": {
         "type": "Project"
       }
     }

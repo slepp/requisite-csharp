@@ -58,8 +58,8 @@ jobs:
 
       - name: Inspect package
         run: |
-          NUPKG="$(find artifacts/package -maxdepth 1 -name 'Requisite.*.nupkg' -print -quit)"
-          SNUPKG="$(find artifacts/package -maxdepth 1 -name 'Requisite.*.snupkg' -print -quit)"
+          NUPKG="$(find artifacts/package -maxdepth 1 -name 'Requisite.CSharp.*.nupkg' -print -quit)"
+          SNUPKG="$(find artifacts/package -maxdepth 1 -name 'Requisite.CSharp.*.snupkg' -print -quit)"
           test -n "$NUPKG"
           test -n "$SNUPKG"
           python3 eng/inspect-package.py "$NUPKG" "$SNUPKG"

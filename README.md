@@ -17,7 +17,7 @@ annotations, and has no runtime dependencies.
 ## Install
 
 ```sh
-dotnet add package Requisite --version 0.1.0
+dotnet add package Requisite.CSharp --version 0.1.0
 ```
 
 ## Example
