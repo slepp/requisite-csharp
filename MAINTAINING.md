@@ -48,12 +48,14 @@ Regenerate and commit package lock files after intentional dependency updates.
 3. Push a tag exactly matching `v<VersionPrefix>`, for example `v0.1.0`.
 
 The tag workflow repeats formatting, both TFM tests, examples, package
-validation, and package inspection. It creates or updates a GitHub release. If
-the repository has a `NUGET_API_KEY` secret, it also pushes to NuGet; otherwise
-it reports that publication was skipped and still retains release artifacts.
-No publishing credential is assumed.
+validation, and package inspection. It creates or updates a GitHub release but
+does not publish to NuGet.
 
-For a validated release whose tag workflow ran without credentials, configure
-the protected `nuget` environment with `NUGET_API_KEY`, then run **Publish
-NuGet package** with the released version. It downloads the exact `.nupkg` and
-`.snupkg` already attached to the GitHub release rather than rebuilding them.
+For the first package owned by a new NuGet account, configure `NUGET_API_KEY`
+in the protected `nuget` environment and run **Publish NuGet package** once
+with `bootstrap` enabled. Delete that key immediately afterward.
+
+Create the NuGet trusted-publishing policy for `publish.yml`, set `NUGET_USER`
+in the same environment, and use the default OIDC path for every later
+publication. The workflow downloads the exact `.nupkg` and `.snupkg` attached
+to the GitHub release rather than rebuilding them.

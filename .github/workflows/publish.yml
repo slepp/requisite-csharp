@@ -8,9 +8,15 @@ on:
         required: true
         default: 0.1.0
         type: string
+      bootstrap:
+        description: Use the one-time API key before trusted publishing is available
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: nuget-${{ inputs.version }}
@@ -50,19 +56,36 @@ jobs:
           test -f "artifacts/package/Requisite.CSharp.$VERSION.nupkg"
           test -f "artifacts/package/Requisite.CSharp.$VERSION.snupkg"
 
+      - name: NuGet login
+        if: inputs.bootstrap == false
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Publish exact package
         shell: bash
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          BOOTSTRAP_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          OIDC_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+          USE_BOOTSTRAP: ${{ inputs.bootstrap }}
           VERSION: ${{ inputs.version }}
         run: |
-          if [[ -z "$NUGET_API_KEY" ]]; then
-            echo "::error::NUGET_API_KEY is not configured"
-            exit 1
+          if [[ "$USE_BOOTSTRAP" == "true" ]]; then
+            if [[ -z "$BOOTSTRAP_API_KEY" ]]; then
+              echo "::error::NUGET_API_KEY is required for the one-time bootstrap"
+              exit 1
+            fi
+            key="$BOOTSTRAP_API_KEY"
+          else
+            if [[ -z "$OIDC_API_KEY" ]]; then
+              echo "::error::NuGet trusted publishing did not issue a temporary key"
+              exit 1
+            fi
+            key="$OIDC_API_KEY"
           fi
+          export NUGET_API_KEY="$key"
+          export NUGET_SYMBOL_API_KEY="$key"
           dotnet nuget push "artifacts/package/Requisite.CSharp.$VERSION.nupkg" \
-            --api-key "$NUGET_API_KEY" \
             --source https://api.nuget.org/v3/index.json \
-            --symbol-api-key "$NUGET_API_KEY" \
-            --symbol-source https://api.nuget.org/v3/index.json \
             --skip-duplicate
