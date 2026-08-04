@@ -52,3 +52,8 @@ validation, and package inspection. It creates or updates a GitHub release. If
 the repository has a `NUGET_API_KEY` secret, it also pushes to NuGet; otherwise
 it reports that publication was skipped and still retains release artifacts.
 No publishing credential is assumed.
+
+For a validated release whose tag workflow ran without credentials, configure
+the protected `nuget` environment with `NUGET_API_KEY`, then run **Publish
+NuGet package** with the released version. It downloads the exact `.nupkg` and
+`.snupkg` already attached to the GitHub release rather than rebuilding them.
