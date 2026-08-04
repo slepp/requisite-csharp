@@ -5,7 +5,7 @@
     <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
     <Authors>slepp</Authors>
     <Copyright>Copyright © 2026 slepp</Copyright>
-    <Description>Typed untrusted-to-trusted transitions, confidence gates, and per-value freshness checks for .NET.</Description>
+    <Description>Typed validated values, explicit trust transitions, exhaustive confidence levels, and per-value TTL freshness for C#.</Description>
     <ApiCompatEnableRuleAttributesMustMatch>true</ApiCompatEnableRuleAttributesMustMatch>
     <ApiCompatEnableRuleCannotChangeParameterName>true</ApiCompatEnableRuleCannotChangeParameterName>
     <EnablePackageValidation>true</EnablePackageValidation>
@@ -26,7 +26,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>https://github.com/slepp/requisite-csharp/blob/main/CHANGELOG.md</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageTags>typestate;validation;type-safety;taint;confidence;freshness;ttl;capability</PackageTags>
+    <PackageTags>validated-values;trusted-types;refinement-types;proof-types;confidence-levels;trust-boundary;exhaustive-matching;stale-data;typestate;validation;type-safety;taint-tracking;freshness;ttl;capability</PackageTags>
     <PackageValidationBaselineName>Requisite.CSharp</PackageValidationBaselineName>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryType>git</RepositoryType>
